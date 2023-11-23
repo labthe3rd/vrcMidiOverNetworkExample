@@ -44,6 +44,9 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
     public Text generalChangeSentText;
     public Text generalChangeLostText;
 
+    //Receive UI
+    public Text latencyText;
+
 
     //Local testing bit so you can use multiple instances of VRChat
     public bool localTest;
@@ -56,6 +59,7 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
     [UdonSynced] private int midiChangeChannel;
     [UdonSynced] private int midiChangeNumber;
     [UdonSynced] private int midiChangeValue;
+    [UdonSynced] private int sendTime;
 
     private int lastMidiChangeChannel;
     private int lastMidiChangeNumber;
@@ -66,6 +70,9 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
 
     private bool lastMidiOnState;
     private bool lastMidiOffState;
+
+    private int receiveTime;
+    private int latency;
 
 
     public override void MidiNoteOn(int channel, int number, int velocity)
@@ -86,6 +93,9 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
             midiOnOffNumber = number;
             midiOnOffVelocity = velocity;
             midiOnState = !midiOnState;
+
+            //Owner send time
+            sendTime = Networking.GetServerTimeInMilliseconds();
 
             //Send values to other players
             RequestSerialization();
@@ -117,6 +127,12 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
             midiOnOffVelocity = velocity;
             midiOffState = !midiOffState;
 
+            //Owner send time
+            sendTime = Networking.GetServerTimeInMilliseconds();
+
+            //Send values to over players
+            RequestSerialization();
+
             //Update UI
             midiOnOffChanneltext.text = midiOnOffChannel.ToString();
             midiOnOffNumberText.text = midiOnOffNumber.ToString();
@@ -143,6 +159,10 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
             midiChangeNumber = number;
             midiChangeValue = value;
 
+            //Owner send time
+            sendTime = Networking.GetServerTimeInMilliseconds();
+
+            //Send values to other players
             RequestSerialization();
 
             //Update UI
@@ -185,6 +205,7 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
     public override void OnDeserialization()
     {
         Debug.Log("New data received...");
+        receiveTime = Networking.GetServerTimeInMilliseconds();
         netOnOffChannelText.text = midiOnOffChannel.ToString();
         netOnOffNumberText.text = midiOnOffNumber.ToString();
         netOnOffVelocityText.text = midiOnOffVelocity.ToString();
@@ -203,6 +224,10 @@ public class MidiNetworkManualExample : UdonSharpBehaviour
         netChangeNumberText.text = midiChangeNumber.ToString();
         netChangeValueText.text = midiChangeValue.ToString();
         netChangeReceiveText.text = Networking.GetNetworkDateTime().ToString();
+
+        //Calculate latency
+        latency = receiveTime - sendTime;
+        latencyText.text = latency.ToString() + " mS";
 
     }
 
