@@ -1,4 +1,4 @@
-# vrcMidiOverNetworkExample
+# Example Using Midi to Send Udon Synced Events in a VRC World
 
 Example Unity Project and package that demonstrates how to sync midi data across a world's network.
 
